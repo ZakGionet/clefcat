@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 4.0)
+project(C_playground C)
+
+set(CMAKE_C_STANDARD 11)
+
+add_executable(C_playground main.c
+        scale_finder.c
+        scale_finder.h
+        t_note.c
+        t_note.h)
