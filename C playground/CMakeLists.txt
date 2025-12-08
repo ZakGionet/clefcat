@@ -7,4 +7,6 @@ add_executable(C_playground main.c
         scale_finder.c
         scale_finder.h
         t_note.c
-        t_note.h)
+        t_note.h
+        t_scale.c
+        t_scale.h)
