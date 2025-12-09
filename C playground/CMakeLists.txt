@@ -9,4 +9,12 @@ add_executable(C_playground main.c
         t_note.c
         t_note.h
         t_scale.c
-        t_scale.h)
+        t_scale.h
+        enums.c
+        enums.h
+        string_manip.c
+        string_manip.h
+        generation_helpers.c
+        generation_helpers.h
+        notes_list.c
+        notes_list.h)
