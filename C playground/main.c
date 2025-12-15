@@ -3,10 +3,17 @@
 #include "generation_helpers.h"
 #include "scale_finder.h"
 #include "t_note.h"
+#include "t_scale.h"
+
 
 int main(void) {
 
-    init_all_notes();
+    t_note *note_addr[MAX_NOTE_COUNT];
+    int note_addr_count = 0;
+
+    t_scale *scale_addr[MAX_SCALE_COUNT];
+
+    t_note_init_starting_notes(note_addr);
 
     t_note *NATURAL_NOTES[7] = {
         A_NATURAL,
@@ -17,8 +24,6 @@ int main(void) {
         F_NATURAL,
         G_NATURAL
     };
-
-
 
     t_note *SHARP_NOTES[7] = {
         A_SHARP,
@@ -68,16 +73,6 @@ int main(void) {
 
     }
 
-
-    // for (int i = 0; i < 7; i++) {
-    //     if (FLAT_NOTES[i]->equiv) {
-    //         t_note_link_next(FLAT_NOTES[i], FLAT_NOTES[i + 1]);
-    //     }
-    //     else if (!FLAT_NOTES[i]->next_note) {
-    //         t_note_link_next(FLAT_NOTES[i], SHARP_NOTES[i + 1]);
-    //     }
-    // }
-
     t_note *start = A_NATURAL;
     t_note *next = A_NATURAL;
     do {
@@ -85,10 +80,9 @@ int main(void) {
         next = next->next_note;
     } while (next != start);
 
+    t_scale *A_MAJ_S = t_scale_init(A_NATURAL, MAJOR);
 
 
-
-
-
+    t_note_destroy_all(note_addr, &note_addr_count);
 
 }

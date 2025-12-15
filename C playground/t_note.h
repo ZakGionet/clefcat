@@ -9,9 +9,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "notes_list.h"
+#include "t_interval.h"
 
 #define MAX_NAME_LENGTH 30
 #define MAX_SYMBOL_LENGTH 3
+#define MAX_NOTE_COUNT 1000
 
 typedef struct t_note t_note;
 typedef enum accents accents;
@@ -25,6 +27,7 @@ struct t_note {
     char *name;
     char *symbol;
     accents accent;
+    interval_type interval;
     t_note *equiv;
     t_note *next_note;
     t_note *prev_note;
@@ -38,13 +41,21 @@ struct t_note {
 NOTES_LIST
 #undef X
 
-t_note *t_note_init(char *name, char *symbol, accents accent);
+t_note *t_note_init(const char *name, const char *symbol, const accents accent, t_note **note_addr, int *note_index);
+
+t_note *t_note_create_copy(t_note *note, t_note **note_addr, int *note_idx);
 
 int t_note_add_equiv(t_note *note_1, t_note *note_2);
 
 int t_note_link_next(t_note *note_1, t_note *note_2);
 
+void t_note_set_interval(t_note *t_note, interval_type interval_type);
+
 // Function that initializes all of them
-void init_all_notes(void);
+void t_note_init_starting_notes(t_note **note_addr);
+
+void t_note_destroy_all(t_note **note_addr, int *note_index);
+
+
 
 #endif //C_PLAYGROUND_T_NOTE_H

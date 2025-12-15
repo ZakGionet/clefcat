@@ -17,4 +17,6 @@ add_executable(C_playground main.c
         generation_helpers.c
         generation_helpers.h
         notes_list.c
-        notes_list.h)
+        notes_list.h
+        t_interval.c
+        t_interval.h)
