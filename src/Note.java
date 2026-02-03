@@ -1,73 +1,50 @@
+import java.util.HashMap;
+import java.util.Map;
+
+
+
 public class Note {
-    String composedSymbol;
-    char symbol;
-    char accent;
-    Note equiv;
+    private String composedSymbol;
+    private char symbol;
+    private char accent;
+    private Note equivalent = null;
+    private Note sharp = null;
+    private Note flat = null;
+    public static final String symbolFlag = "symbol";
+    public static final String accentFlag = "accent";
 
 
-    //region Constructor Requires
-    private static void requireValidConstructorParams(CharSequence paramString) {
-        if (paramString == null) {
-            throw new IllegalArgumentException("Parameter is null.");
+
+
+    //region input linting
+    public static Map<String, Character> parseString(String s) {
+        Map<String, Character> parsedNote= new HashMap<>();
+
+        if (s.length() < 1 || s.length() > 2) {
+            throw new IllegalArgumentException("Not a valid size string");
         }
-        if ( paramString.length() > 2) {
-            throw new IllegalArgumentException("Parameter is longer than 2 chars: " + paramString);
-        }
-        if (paramString.length() == 1) {
-            requireValidConstructorParams(paramString.charAt(0));
-        }
-        requireValidConstructorParams(paramString.charAt(0), paramString.charAt(1));
+        parsedNote.put(symbolFlag, s.toUpperCase().charAt(0));
+        parsedNote.put(accentFlag, (s.length() == 2) ? s.charAt(1) : '-');
+
+        return parsedNote;
     }
-
-    private static void requireValidConstructorParams(CharSequence symbol, CharSequence accent) {
-        if (symbol == null) {
-            throw new IllegalArgumentException("Symbol is null.");
-        }
-        if (symbol.length() != 1) {
-            throw new IllegalArgumentException("Symbol is not 1 char: ");
-        }
-        if (accent == null) {
-            throw new IllegalArgumentException("Accent is null.");
-        }
-        if (accent.length() != 1) {
-            throw new IllegalArgumentException("accent is not 1 char: ");
-        }
-        requireValidConstructorParams(symbol.charAt(0), accent.charAt(0));
-    }
-
-    private static void requireValidConstructorParams(char symbol) {
-        if (Character.toLowerCase(symbol) < 'a' || Character.toLowerCase(symbol) > 'g') {
-            throw new IllegalArgumentException("Symbol is not within a-g: " + symbol);
-        }
-    }
-
-    private static void requireValidConstructorParams(char symbol, char accent) {
-        if (
-                accent != '#' &&
-                Character.toLowerCase(accent) != 'b' &&
-                accent != '-') {
-            throw new IllegalArgumentException("Not a valid accent: " + accent);
-        }
-        requireValidConstructorParams(symbol);
-    }
-    //endregion
 
     //region Constructor Helpers
-    private static char extractSymbol(CharSequence cs) {
-        if (cs == null || cs.length() < 1 || cs.length() > 2) {
+    private static char extractSymbol(String s) {
+        if (s == null || s.length() < 1 || s.length() > 2) {
             throw new IllegalArgumentException("Must be 1 character.");
         }
-        return cs.charAt(0);
+        return s.charAt(0);
     }
 
-    private static char extractAccent(CharSequence cs) {
-        if (cs == null) {
+    private static char extractAccent(String s) {
+        if (s == null) {
             throw new IllegalArgumentException("Passed null.");
         }
-        if (cs.length() == 1) {
+        if (s.length() == 1) {
             return '-';
         }
-        return cs.charAt(1);
+        return s.charAt(1);
     }
     //endregion
 
@@ -75,20 +52,34 @@ public class Note {
     // Here, we learnt that you CANNOT call another constructor conditionally, or after
     // other code. ALL logic must be delegated to the constructor called. Here, we were
     // trying to have verification logic in an overloaded constructor
-    public Note(char symbol, char accent) {
-        requireValidConstructorParams(symbol, accent);
 
-        this.symbol = symbol;
+    public Note(Note note) {
+        this.composedSymbol = note.composedSymbol;
+        this.symbol = note.symbol;
+        this.accent = note.accent;
+        this.equivalent = note.equivalent;
+        this.sharp = note.sharp;
+        this.flat = note.flat;
+    }
+
+    public Note(Map<String, Character> parsedNote) {
+        this(parsedNote.get(symbolFlag), parsedNote.get(accentFlag));
+    }
+
+    public Note(char symbol, char accent) {
+        RequireHandlers.requireValidComposedSymbol(symbol, accent);
+
+        this.symbol = Character.toUpperCase(symbol);
         this.accent = accent;
-        this.composedSymbol = "" + symbol + accent;
+        this.composedSymbol = "" + this.symbol + (accent == '-' ? "" : accent);
     }
     public Note(char symbol) {
         this(symbol, '-');
     }
-    public Note(CharSequence composedSymbol) {
+    public Note(String s) {
         this(
-                extractSymbol(composedSymbol),
-                extractAccent(composedSymbol)
+                extractSymbol(s),
+                extractAccent(s)
         );
     }
     public Note(CharSequence symbol, CharSequence accent) {
@@ -99,4 +90,99 @@ public class Note {
     }
     //endregion
 
+    //region Setters
+
+    public void setSymbol(String s) {
+        this.setSymbol(s.charAt(0));
+    }
+    public void setSymbol(char c) {
+        RequireHandlers.requireValidSymbol(c);
+        this.symbol = Character.toUpperCase(c);
+    }
+
+    public void setAccent(String s) {
+        this.setAccent(s.charAt(0));
+    }
+    public void setAccent(char c) {
+        RequireHandlers.requireValidAccent(c);
+        this.accent = c;
+    }
+
+    public void setEquivalent(Note note) {
+        if (note == null) {
+            throw new IllegalArgumentException("Passed null.");
+        }
+
+        this.equivalent = note;
+    }
+
+    public static void setEquivalent(Note note1, Note note2) {
+        if (note1 == null || note2 == null) {
+            throw new IllegalArgumentException("Passed null.");
+        }
+
+        note1.equivalent = note2;
+        note2.equivalent = note1;
+    }
+
+    public void setSharp(Note note) {
+        if (note == null) {
+            throw new IllegalArgumentException("Passed null.");
+        }
+        this.sharp = note;
+    }
+
+    public void setFlat(Note note) {
+        if (note == null) {
+            throw new IllegalArgumentException("Passed null.");
+        }
+        this.flat = note;
+    }
+    //endregion
+
+    //region Getters
+    public char getSymbol() {
+        return this.symbol;
+    }
+    public char getAccent() {
+        return this.accent;
+    }
+
+    public String getComposedSymbol() {
+        return this.composedSymbol;
+    }
+
+    public Note getEquivalent() {
+        return this.equivalent;
+    }
+    //endregion
+
+
+    public boolean isSharp() {
+        return (this.getAccent() == '-' || this.getAccent() == '#');
+    }
+
+    public boolean isFlat() {
+        return (this.accent == 'b');
+    }
+
+    public boolean equals(Note n) {
+        return (n.composedSymbol.equals(this.composedSymbol));
+    }
+    public boolean equals(String composedSymbol) {
+        return equals(new NoteInput(composedSymbol));
+    }
+
+    public boolean equals(NoteInput parsedNote) {
+        return (parsedNote.getAccent() == this.getAccent() && parsedNote.getSymbol() == this.getSymbol());
+    }
+
+    public boolean equals(char symbol) {
+        RequireHandlers.requireValidComposedSymbol(symbol);
+        return (this.symbol == Character.toUpperCase(symbol));
+    }
+
+    public String toString() {
+        return this.composedSymbol;
+    }
 }

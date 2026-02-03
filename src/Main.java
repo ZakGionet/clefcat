@@ -1,13 +1,35 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 void main() {
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    IO.println(String.format("Hello and welcome!"));
+    Note A_flat = new Note("Ab");
+    Note A_nat = new Note("a");
+    Note B_nat = new Note("b");
 
-    for (int i = 1; i <= 5; i++) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        IO.println("i = " + i);
-    }
+
+    Note a_nat_dbl = new Note("a");
+    Note Ab_dbl = new Note("ab");
+
+    System.out.println(A_nat.getComposedSymbol());
+
+    NoteArray na = new NoteArray();
+    na.add(A_nat);
+    na.add(B_nat);
+
+    System.out.println(na.get("B").getComposedSymbol());
+
+    na.display();
+
+    System.out.println(A_flat.equals("ab"));
+
+
+    NoteArray sharpBaseNotes = new NoteArray();
+    NoteArray flatBaseNotes = new NoteArray();
+    String[] sharpBaseNotesStr = new String[12];
+    String[] flatBaseNotesStr = new String[12];
+
+    NoteArray.sharpBaseNotes.display();
+
+    Scales majorScale = Scales.MAJOR;
+
+    Scale AMajorScale = new Scale(majorScale, "a");
+
+    AMajorScale.display();
 }
