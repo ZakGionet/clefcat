@@ -1,8 +1,9 @@
-public class Scale extends NoteArray{
+public class Scale extends NoteArray<ScaleNote>{
     String name;
     int[] structure;
 
 
+    //region Constructors
     public Scale() { super(); }
 
     public Scale(Scales scale) {
@@ -15,43 +16,67 @@ public class Scale extends NoteArray{
             this.add(new ScaleNote(s));
         }
     }
-    public Scale(Scales scaleType, String s) {
+    public Scale(Scales scaleType, String paramString) {
+        this(scaleType, new NoteInput(paramString));
+    }
+
+    public Scale(Scales scaleType, char symbol) {
+        this(scaleType, new NoteInput(symbol));
+    }
+
+    public Scale(Scales scaleType, NoteInput ni) {
         this.name = scaleType.getName();
         this.structure = scaleType.getStructure();
 
-        Note startNote = NoteArray.getBaseNote(s);
+        boolean rootIsFlat = (ni.isFlat() || ni.isSymbol('f'));
+        NoteArray<Note> baseNoteArray = (rootIsFlat) ? flatBaseNotes : sharpBaseNotes;
 
-        populateScale(scaleType.getPositions(), startNote);
+        int[] realIndices = generateIndicesFromRootNote(scaleType.getPositions(), baseNoteArray.indexOf(ni));
+
+        setNotes(realIndices, baseNoteArray);
     }
+    //endregion
 
-    private void populateScale(int[] positions, Note rootNote) {
-        Note startNote, nextNote;
-        NoteArray baseNoteArray = (rootNote.isSharp()) ? NoteArray.sharpBaseNotes : NoteArray.flatBaseNotes;
-        startNote = baseNoteArray.get(rootNote);
-
-
-        this.add(new ScaleNote(startNote));
-        for (int i = 1; i < positions.length; i++) {
-            for (int j = 0; j < positions[i]; j++) {
-                nextNote = baseNoteArray.getNext(startNote);
-
-                this.add(new ScaleNote(nextNote));
-                startNote = nextNote;
-            }
+    public void setNext() {
+        for (ScaleNote scaleNote: this) {
 
         }
     }
 
-    private boolean isSharp(NoteInput ni) {
-        return (ni.getAccent() == '-' || ni.getAccent() == '#');
+    int[] generateIndicesFromRootNote(int[] positions, int startIndex) {
+        int baseScaleLength = NoteArray.BASE_ARRAY_LENGTH;
+
+        if (startIndex >= baseScaleLength || startIndex < 0) {
+            throw new IllegalArgumentException("Start index out of bounds for baseNoteArray.");
+        }
+
+        int[] realIndices = new int[7];
+        int potentialIndex;
+
+        for (int i = 0; i < positions.length; i++) {
+            potentialIndex = positions[i] + startIndex;
+            realIndices[i] = (potentialIndex >= baseScaleLength) ? potentialIndex - baseScaleLength : potentialIndex;
+        }
+        return realIndices;
     }
 
+    private void setNotes(int[] baseArrayIndices, NoteArray<Note> baseNoteArray) {
+        for (int i = 0; i < baseArrayIndices.length; i++) {
+            // reference to a note in the baseNoteArray
+            Note refNote = baseNoteArray.get(baseArrayIndices[i]);
 
+            // Create new ScaleNote from Note reference
+            ScaleNote scaleNote = new ScaleNote(refNote);
 
-    private void populateScale(int[] positions, NoteInput ni) {
+            // Check to see if we're adding a duplicate of a letter, if true: replace its equivalent ScaleNote.
+            if (i > 0 && this.get(i - 1).getSymbol() == scaleNote.getSymbol()) {
+                scaleNote = new ScaleNote(scaleNote.getEquivalent());
+            }
 
-        Note rootNote = NoteArray.sharpBaseNotes.get(ni);
+            // Add it to the Scale.
+            this.add(scaleNote);
+
+        }
     }
-
 
 }

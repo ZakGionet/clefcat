@@ -1,4 +1,3 @@
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -10,24 +9,16 @@ public class Note {
     private Note equivalent = null;
     private Note sharp = null;
     private Note flat = null;
-    public static final String symbolFlag = "symbol";
-    public static final String accentFlag = "accent";
+    public static final String SYMBOL_FLAG = "symbol";
+    public static final String ACCENT_FLAG = "accent";
+    public static final char SHARP_SYMBOL = '#';
+    public static final char FLAT_SYMBOL = 'b';
+    public static final char NATURAL_SYMBOL = '-';
 
 
 
 
-    //region input linting
-    public static Map<String, Character> parseString(String s) {
-        Map<String, Character> parsedNote= new HashMap<>();
 
-        if (s.length() < 1 || s.length() > 2) {
-            throw new IllegalArgumentException("Not a valid size string");
-        }
-        parsedNote.put(symbolFlag, s.toUpperCase().charAt(0));
-        parsedNote.put(accentFlag, (s.length() == 2) ? s.charAt(1) : '-');
-
-        return parsedNote;
-    }
 
     //region Constructor Helpers
     private static char extractSymbol(String s) {
@@ -42,7 +33,7 @@ public class Note {
             throw new IllegalArgumentException("Passed null.");
         }
         if (s.length() == 1) {
-            return '-';
+            return NATURAL_SYMBOL;
         }
         return s.charAt(1);
     }
@@ -63,18 +54,18 @@ public class Note {
     }
 
     public Note(Map<String, Character> parsedNote) {
-        this(parsedNote.get(symbolFlag), parsedNote.get(accentFlag));
+        this(parsedNote.get(SYMBOL_FLAG), parsedNote.get(ACCENT_FLAG));
     }
 
     public Note(char symbol, char accent) {
-        RequireHandlers.requireValidComposedSymbol(symbol, accent);
+        RequireHandlers.requireValidNoteInput(symbol, accent);
 
         this.symbol = Character.toUpperCase(symbol);
         this.accent = accent;
-        this.composedSymbol = "" + this.symbol + (accent == '-' ? "" : accent);
+        this.composedSymbol = "" + this.symbol + (accent == NATURAL_SYMBOL ? "" : accent);
     }
     public Note(char symbol) {
-        this(symbol, '-');
+        this(symbol, NATURAL_SYMBOL);
     }
     public Note(String s) {
         this(
@@ -159,12 +150,13 @@ public class Note {
 
 
     public boolean isSharp() {
-        return (this.getAccent() == '-' || this.getAccent() == '#');
+        return (this.getAccent() == NATURAL_SYMBOL || this.getAccent() == SHARP_SYMBOL);
     }
 
     public boolean isFlat() {
-        return (this.accent == 'b');
+        return (this.accent == FLAT_SYMBOL);
     }
+    public boolean isNatural() { return (this.accent == NATURAL_SYMBOL); }
 
     public boolean equals(Note n) {
         return (n.composedSymbol.equals(this.composedSymbol));
@@ -178,7 +170,7 @@ public class Note {
     }
 
     public boolean equals(char symbol) {
-        RequireHandlers.requireValidComposedSymbol(symbol);
+        RequireHandlers.requireValidNoteInput(symbol);
         return (this.symbol == Character.toUpperCase(symbol));
     }
 

@@ -4,9 +4,35 @@ public class RequireHandlers {
 
     }
 
-    public static void requireCharCount(CharSequence cs) {
-        if (cs == null || cs.length() > 1) {
-            throw new IllegalArgumentException("Not a valid length: " + cs);
+    public static void requireCharCount(CharSequence cs, int min, int max) {
+        requireNotNull(cs);
+
+        if (cs.length() < min) {
+            throw new IllegalArgumentException("Invalid string length: " + cs.length() + ". (too short).");
+        }
+        if (cs.length() > max) {
+            throw new IllegalArgumentException("Invalid string length: " + cs.length() + ". (too long).");
+        }
+    }
+
+    public static void requireCharCount(CharSequence cs, int exactLength) {
+        requireNotNull(cs);
+
+        if (cs.length() != exactLength) {
+            throw new IllegalArgumentException(
+                    "Invalid string length: " + cs.length() + ". String must contain " + exactLength + " characters."
+            );
+        }
+    }
+
+    public static void requireNotNull(CharSequence cs) {
+        if (cs == null) {
+            throw new IllegalArgumentException("Invalid String: null string");
+        }
+    }
+    public static void requireNotNull(CharSequence[] paramStrings) {
+        for (CharSequence cs: paramStrings) {
+            requireNotNull(cs);
         }
     }
 
@@ -15,59 +41,50 @@ public class RequireHandlers {
             throw new IllegalArgumentException("Not a valid symbol: " + symbol);
         }
     }
+
     public static void requireValidSymbol(CharSequence symbol) {
-        requireCharCount(symbol);
+        requireCharCount(symbol, 1, 1);
         requireValidSymbol(symbol.charAt(0));
     }
 
     public static void requireValidAccent(char accent) {
         if (
-                accent != '#' &&
-                        Character.toLowerCase(accent) != 'b' &&
-                        accent != '-') {
+                accent != Note.SHARP_SYMBOL
+                &&
+                accent != Note.NATURAL_SYMBOL
+                &&
+                Character.toLowerCase(accent) != Note.FLAT_SYMBOL) {
             throw new IllegalArgumentException("Not a valid accent: " + accent);
         }
     }
+
     public static void requireValidAccent(CharSequence accent) {
-        requireCharCount(accent);
+        requireCharCount(accent, 1);
         requireValidAccent(accent.charAt(0));
     }
 
     //region Constructor Requires
-    public static void requireValidComposedSymbol(String paramString) {
-        if (paramString == null) {
-            throw new IllegalArgumentException("Parameter is null.");
-        }
+    public static void requireValidNoteInput(String paramString) {
+        requireCharCount(paramString, 1, 2);
         if (paramString.length() == 1) {
-            requireValidComposedSymbol(paramString.charAt(0));
+            requireValidNoteInput(paramString.charAt(0));
         }
         else {
-            requireValidComposedSymbol(paramString.charAt(0), paramString.charAt(1));
+            requireValidNoteInput(paramString.charAt(0), paramString.charAt(1));
         }
 
     }
 
-    public static void requireValidComposedSymbol(String symbol, String accent) {
-        if (symbol == null) {
-            throw new IllegalArgumentException("Symbol is null.");
-        }
-        if (symbol.length() != 1) {
-            throw new IllegalArgumentException("Symbol is not 1 char: ");
-        }
-        if (accent == null) {
-            throw new IllegalArgumentException("Accent is null.");
-        }
-        if (accent.length() != 1) {
-            throw new IllegalArgumentException("accent is not 1 char: ");
-        }
-        requireValidComposedSymbol(symbol.charAt(0), accent.charAt(0));
+    public static void requireValidNoteInput(String symbol, String accent) {
+        requireValidNoteInput(symbol);
+        requireValidNoteInput(accent);
     }
 
-    public static void requireValidComposedSymbol(char symbol) {
+    public static void requireValidNoteInput(char symbol) {
         requireValidSymbol(symbol);
     }
 
-    public static void requireValidComposedSymbol(char symbol, char accent) {
+    public static void requireValidNoteInput(char symbol, char accent) {
         requireValidSymbol(symbol);
         requireValidAccent(accent);
     }

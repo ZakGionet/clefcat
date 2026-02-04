@@ -2,20 +2,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class NoteArray extends ArrayList<Note>{
+public class NoteArray<S extends Note> extends ArrayList<S>{
     private String openingPrint = "[\"";
     private String closingPrint = "\"]";
     private String separator = "\",\"";
+    public static final int BASE_ARRAY_LENGTH = 12;
 
-    public static NoteArray sharpBaseNotes = new NoteArray(
-            new String[]{"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"}
+    public static NoteArray<Note> sharpBaseNotes = new NoteArray<Note>(
+            new String[]{"A","A#","B","C","C#","D","D#","E","F","F#","G","G#"}
     );
-    public static NoteArray flatBaseNotes = new NoteArray(
-            new String[]{"A","Bb","B","C","Db","D","Eb","E","F","Gb","G", "Ab"}
+    public static NoteArray<Note> flatBaseNotes = new NoteArray<Note>(
+            new String[]{"A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab"}
     );
+
 
     static {
         setBaseArrayEquivalentsStatic();
+        Note.setEquivalent(sharpBaseNotes.get("B"), new Note("Cb"));
+        Note.setEquivalent(flatBaseNotes.get("B"), new Note("Cb"));
+        Note.setEquivalent(sharpBaseNotes.get("C"), new Note("B#"));
+        Note.setEquivalent(flatBaseNotes.get("C"), new Note("B#"));
+
+        Note.setEquivalent(sharpBaseNotes.get("E"), new Note("Fb"));
+        Note.setEquivalent(flatBaseNotes.get("E"), new Note("Fb"));
+        Note.setEquivalent(sharpBaseNotes.get("F"), new Note("E#"));
+        Note.setEquivalent(flatBaseNotes.get("F"), new Note("E#"));
     }
     public NoteArray() {
         super();
@@ -25,17 +36,16 @@ public class NoteArray extends ArrayList<Note>{
         this.addAll(strings);
     }
 
-//    public NoteArray(String[] strings, boolean setEquivalent) {
-//        this(strings);
-//
-//
-//    }
+
 
     public static void setBaseArrayEquivalentsStatic() {
         for (int i = 1; i < 12; i++) {
             Note sharpNote = sharpBaseNotes.get(i);
             Note flatNote = flatBaseNotes.get(i);
-            if (!sharpNote.equals(flatNote)) {
+            if (sharpNote.isNatural() && sharpNote.getSymbol() == flatNote.getSymbol()) {
+                Note.setEquivalent(sharpNote, flatNote);
+            }
+            else if (!sharpNote.equals(flatNote)) {
                 Note.setEquivalent(sharpNote, flatNote);
             }
         }
@@ -60,19 +70,31 @@ public class NoteArray extends ArrayList<Note>{
         return getBaseNote(new NoteInput(symbol, accent));
     }
 
-    public void addAll(Map<String, Character>[] parsedNotes) {
-        for (Map<String, Character> pn : parsedNotes) {
+    public void addAll(Map<String, Character>[] mappedNotes) {
+        for (Map<String, Character> pn : mappedNotes) {
+
             this.add(new Note(pn.get("symbol"), pn.get("accent")));
         }
     }
 
     public void addAll(String[] strings) {
         for (String s : strings) {
-            RequireHandlers.requireValidComposedSymbol(s);
-
-            Map<String, Character> parsedNote = Note.parseString(s);
-            this.add(new Note(parsedNote));
+            Map<String, Character> parsedNote = NoteInput.mapString(s);
+            Note n = new Note(parsedNote);
+            this.add();
         }
+    }
+
+
+
+    public int indexOf(NoteInput ni) {
+        for (int i = 0; i < this.size(); i++)
+        {
+            if (this.get(i).equals(ni)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public Note get(NoteInput ni) {
@@ -131,9 +153,9 @@ public class NoteArray extends ArrayList<Note>{
         return this.indexOf(note) + 1;
     }
     public int getDegree(String s) {
-        RequireHandlers.requireValidComposedSymbol(s);
+        RequireHandlers.requireValidNoteInput(s);
 
-        Map<String, Character> parsedNote = Note.parseString(s);
+        Map<String, Character> parsedNote = NoteInput.mapString(s);
 
         boolean isComposed = (s.length() == 2);
 
