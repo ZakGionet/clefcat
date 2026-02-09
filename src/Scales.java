@@ -9,7 +9,7 @@ public enum Scales {
 
     private final String name;
     private final int[] structure;
-    private int[] positions = new int[7];
+    private final int[] positions = new int[7];
 
     private Scales(String name, int[] structure) {
         this.name = name;
@@ -42,18 +42,13 @@ public enum Scales {
     }
 
     public Scales getScale(String name) {
-        switch (name) {
-            case "major":
-                return MAJOR;
-            case "minor natural":
-                return MINOR_NATURAL;
-            case "minor harmonic":
-                return MINOR_HARMONIC;
-            case "minor melodic":
-                return MINOR_MELODIC_ASCENDING;
-            default:
-                throw new IllegalArgumentException("Not a valid scale.");
-        }
+        return switch (name) {
+            case "major" -> MAJOR;
+            case "minor natural" -> MINOR_NATURAL;
+            case "minor harmonic" -> MINOR_HARMONIC;
+            case "minor melodic" -> MINOR_MELODIC_ASCENDING;
+            default -> throw new IllegalArgumentException("Not a valid scale.");
+        };
     }
 }
 

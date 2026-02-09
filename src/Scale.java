@@ -1,19 +1,22 @@
-public class Scale extends NoteArray<ScaleNote>{
+public class Scale extends NoteArray<OrderedNote>{
     String name;
     int[] structure;
+    private static final NoteFactory<OrderedNote> factory = OrderedNote::new;
 
 
     //region Constructors
-    public Scale() { super(); }
+    public Scale() { super(factory); }
 
     public Scale(Scales scale) {
+        this();
         this.name = scale.getName();
         this.structure = scale.getStructure();
     }
 
-    public Scale(Scales scale, String[] notes) {
-        for (String s : notes) {
-            this.add(new ScaleNote(s));
+    public Scale(Scales scaleType, String[] paramStrings) {
+        this(scaleType);
+        for (String s : paramStrings) {
+            this.add(new OrderedNote(s));
         }
     }
     public Scale(Scales scaleType, String paramString) {
@@ -24,24 +27,18 @@ public class Scale extends NoteArray<ScaleNote>{
         this(scaleType, new NoteInput(symbol));
     }
 
-    public Scale(Scales scaleType, NoteInput ni) {
-        this.name = scaleType.getName();
-        this.structure = scaleType.getStructure();
+    public Scale(Scales scaleType, NoteInput noteInput) {
+        this(scaleType);
 
-        boolean rootIsFlat = (ni.isFlat() || ni.isSymbol('f'));
+        boolean rootIsFlat = (noteInput.isFlat() || noteInput.isSymbol('f'));
         NoteArray<Note> baseNoteArray = (rootIsFlat) ? flatBaseNotes : sharpBaseNotes;
 
-        int[] realIndices = generateIndicesFromRootNote(scaleType.getPositions(), baseNoteArray.indexOf(ni));
+        int[] realIndices = generateIndicesFromRootNote(scaleType.getPositions(), baseNoteArray.indexOf(noteInput));
 
         setNotes(realIndices, baseNoteArray);
     }
     //endregion
 
-    public void setNext() {
-        for (ScaleNote scaleNote: this) {
-
-        }
-    }
 
     int[] generateIndicesFromRootNote(int[] positions, int startIndex) {
         int baseScaleLength = NoteArray.BASE_ARRAY_LENGTH;
@@ -66,15 +63,15 @@ public class Scale extends NoteArray<ScaleNote>{
             Note refNote = baseNoteArray.get(baseArrayIndices[i]);
 
             // Create new ScaleNote from Note reference
-            ScaleNote scaleNote = new ScaleNote(refNote);
+            OrderedNote orderedNote = new OrderedNote(refNote);
 
             // Check to see if we're adding a duplicate of a letter, if true: replace its equivalent ScaleNote.
-            if (i > 0 && this.get(i - 1).getSymbol() == scaleNote.getSymbol()) {
-                scaleNote = new ScaleNote(scaleNote.getEquivalent());
+            if (i > 0 && this.get(i - 1).getSymbol() == orderedNote.getSymbol()) {
+                orderedNote = new OrderedNote(orderedNote.getEquivalent());
             }
 
             // Add it to the Scale.
-            this.add(scaleNote);
+            this.add(orderedNote);
 
         }
     }

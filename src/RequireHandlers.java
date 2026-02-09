@@ -1,3 +1,5 @@
+import java.util.Map;
+
 public class RequireHandlers {
 
     private RequireHandlers() {
@@ -63,16 +65,46 @@ public class RequireHandlers {
         requireValidAccent(accent.charAt(0));
     }
 
+    public static void requireValidOctave(char octave) {
+        int intValue = Character.getNumericValue(octave);
+        if (intValue < 0 || intValue > 9) {
+            throw new IllegalArgumentException("Invalid octave.");
+        }
+    }
+
+    public static void requireValidOctave(int octave) {
+        if (octave < 0 || octave > 9) {
+            throw new IllegalArgumentException("Invalid octave.");
+        }
+    }
+
     //region Constructor Requires
     public static void requireValidNoteInput(String paramString) {
-        requireCharCount(paramString, 1, 2);
-        if (paramString.length() == 1) {
-            requireValidNoteInput(paramString.charAt(0));
+        requireCharCount(paramString, 1, 3);
+        switch (paramString.length()) {
+            case 1:
+                requireValidNoteInput(paramString.charAt(0));
+                break;
+            case 2:
+                requireValidNoteInput(paramString.charAt(0), paramString.charAt(1));
+                break;
+            case 3:
+                requireValidNoteInput(paramString.charAt(0), paramString.charAt(1), paramString.charAt(2));
+                break;
         }
-        else {
-            requireValidNoteInput(paramString.charAt(0), paramString.charAt(1));
-        }
+    }
 
+    public static void requireValidNoteInput(char symbol, char accent, char octave) {
+        requireValidSymbol(symbol);
+        requireValidAccent(accent);
+        requireValidOctave(octave);
+    }
+
+    // this is added because a user could construct a Map and pass it to the public
+    // NoteInput constructor.
+    public static void requireValidNoteInput(Map<String, Character> mappedString) {
+        requireValidSymbol(mappedString.get(Note.SYMBOL_FLAG));
+        requireValidAccent(mappedString.get(Note.ACCENT_FLAG));
     }
 
     public static void requireValidNoteInput(String symbol, String accent) {

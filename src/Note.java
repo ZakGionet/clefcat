@@ -2,42 +2,21 @@ import java.util.Map;
 
 
 
-public class Note {
-    private String composedSymbol;
+public class Note implements NoteInterface{
+    private final String composedSymbol;
     private char symbol;
     private char accent;
+    private int octave;
     private Note equivalent = null;
     private Note sharp = null;
     private Note flat = null;
     public static final String SYMBOL_FLAG = "symbol";
     public static final String ACCENT_FLAG = "accent";
+    public static final String OCTAVE_FLAG = "octave";
     public static final char SHARP_SYMBOL = '#';
     public static final char FLAT_SYMBOL = 'b';
     public static final char NATURAL_SYMBOL = '-';
-
-
-
-
-
-
-    //region Constructor Helpers
-    private static char extractSymbol(String s) {
-        if (s == null || s.length() < 1 || s.length() > 2) {
-            throw new IllegalArgumentException("Must be 1 character.");
-        }
-        return s.charAt(0);
-    }
-
-    private static char extractAccent(String s) {
-        if (s == null) {
-            throw new IllegalArgumentException("Passed null.");
-        }
-        if (s.length() == 1) {
-            return NATURAL_SYMBOL;
-        }
-        return s.charAt(1);
-    }
-    //endregion
+    public static final char DEFAULT_OCTAVE = '0';
 
     //region Constructors
     // Here, we learnt that you CANNOT call another constructor conditionally, or after
@@ -48,41 +27,28 @@ public class Note {
         this.composedSymbol = note.composedSymbol;
         this.symbol = note.symbol;
         this.accent = note.accent;
+        this.octave = note.octave;
         this.equivalent = note.equivalent;
         this.sharp = note.sharp;
         this.flat = note.flat;
     }
 
-    public Note(Map<String, Character> parsedNote) {
-        this(parsedNote.get(SYMBOL_FLAG), parsedNote.get(ACCENT_FLAG));
+    public Note(NoteInput noteInput) {
+        this.symbol = noteInput.getSymbol();
+        this.accent = noteInput.getAccent();
+        this.octave = noteInput.getOctave();
+        this.composedSymbol = noteInput.getComposedSymbol();
     }
 
-    public Note(char symbol, char accent) {
-        RequireHandlers.requireValidNoteInput(symbol, accent);
-
-        this.symbol = Character.toUpperCase(symbol);
-        this.accent = accent;
-        this.composedSymbol = "" + this.symbol + (accent == NATURAL_SYMBOL ? "" : accent);
-    }
-    public Note(char symbol) {
-        this(symbol, NATURAL_SYMBOL);
-    }
-    public Note(String s) {
-        this(
-                extractSymbol(s),
-                extractAccent(s)
-        );
-    }
-    public Note(CharSequence symbol, CharSequence accent) {
-        this(
-                symbol.charAt(0),
-                accent.charAt(0)
-        );
-    }
+    public Note(char symbol) { this(new NoteInput(symbol)); }
+    public Note(char symbol, char accent) { this(new NoteInput(symbol, accent)); }
+    public Note(String paramString) { this(new NoteInput(paramString)); }
+    public Note(String symbol, String accent) { this( new NoteInput(symbol, accent) ); }
+    public Note(Map<String, Character> parsedNote) { this(new NoteInput(parsedNote)); }
     //endregion
 
-    //region Setters
 
+    //region Setters
     public void setSymbol(String s) {
         this.setSymbol(s.charAt(0));
     }
@@ -98,6 +64,12 @@ public class Note {
         RequireHandlers.requireValidAccent(c);
         this.accent = c;
     }
+
+    public void setOctave(int octave) {
+        RequireHandlers.requireValidOctave(octave);
+        this.octave = octave;
+    }
+
 
     public void setEquivalent(Note note) {
         if (note == null) {
@@ -138,6 +110,7 @@ public class Note {
     public char getAccent() {
         return this.accent;
     }
+    public int getOctave() { return this.octave; }
 
     public String getComposedSymbol() {
         return this.composedSymbol;
@@ -146,8 +119,29 @@ public class Note {
     public Note getEquivalent() {
         return this.equivalent;
     }
+
+    public NoteInput getNoteInput() {return new NoteInput(this);}
     //endregion
 
+
+    /** Provides a reference to the chromatic array where the "equivalent" note resides.
+     *  By default, if a note is natural or sharp it'll return the sharp chromatic scale.
+     * @return NoteArray.sharpBaseNotes or NoteArray.flatBaseNotes
+     */
+    public NoteArray<Note> getChromaticArrayRef() {
+        return (this.isSharp() || this.isNatural()) ? NoteArray.sharpBaseNotes : NoteArray.flatBaseNotes;
+    }
+
+    /** Returns a reference to the note in the chromatic scale it belongs to.
+    *  By default, if a note is sharp or natural, it will belong to the sharp chromatic scale.
+    */
+    public Note getNoteFromChromatic() {
+        return this.getChromaticArrayRef().get(this.getNoteInput());
+    }
+
+    public static <S extends Note> int semitonesBetween(S rootNote, S nextNote) {
+        return NoteInput.semitonesBetween(rootNote.getNoteInput(), nextNote.getNoteInput());
+    }
 
     public boolean isSharp() {
         return (this.getAccent() == NATURAL_SYMBOL || this.getAccent() == SHARP_SYMBOL);
@@ -177,4 +171,5 @@ public class Note {
     public String toString() {
         return this.composedSymbol;
     }
+
 }

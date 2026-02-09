@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class NoteArray<S extends Note> extends ArrayList<S>{
@@ -7,16 +6,15 @@ public class NoteArray<S extends Note> extends ArrayList<S>{
     private String closingPrint = "\"]";
     private String separator = "\",\"";
     public static final int BASE_ARRAY_LENGTH = 12;
+    private final NoteFactory<S> factory;
 
-    public static NoteArray<Note> sharpBaseNotes = new NoteArray<Note>(
-            new String[]{"A","A#","B","C","C#","D","D#","E","F","F#","G","G#"}
-    );
-    public static NoteArray<Note> flatBaseNotes = new NoteArray<Note>(
-            new String[]{"A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab"}
-    );
-
+    public static final NoteArray<Note> sharpBaseNotes = new NoteArray<>(Note::new);
+    public static final NoteArray<Note> flatBaseNotes = new NoteArray<>(Note::new);
+    public static final NoteArray<Note> equivBaseNotes = new NoteArray<>(Note::new);
 
     static {
+        sharpBaseNotes.addAllBase(new String[]{"A","A#","B","C","C#","D","D#","E","F","F#","G","G#"});
+        flatBaseNotes.addAllBase(new String[]{"A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab"});
         setBaseArrayEquivalentsStatic();
         Note.setEquivalent(sharpBaseNotes.get("B"), new Note("Cb"));
         Note.setEquivalent(flatBaseNotes.get("B"), new Note("Cb"));
@@ -28,14 +26,15 @@ public class NoteArray<S extends Note> extends ArrayList<S>{
         Note.setEquivalent(sharpBaseNotes.get("F"), new Note("E#"));
         Note.setEquivalent(flatBaseNotes.get("F"), new Note("E#"));
     }
-    public NoteArray() {
-        super();
-    }
 
-    public NoteArray(String[] strings) {
-        this.addAll(strings);
-    }
 
+    public NoteArray(NoteFactory<S> factory) {
+        this.factory = factory;
+    }
+    @SuppressWarnings("unchecked") // Class localized constructor for base chromatic note arrys
+    private NoteArray() {
+        this.factory = mappedString -> (S) new Note(mappedString);
+    }
 
 
     public static void setBaseArrayEquivalentsStatic() {
@@ -51,37 +50,32 @@ public class NoteArray<S extends Note> extends ArrayList<S>{
         }
     }
 
-    public static Note getBaseNote(NoteInput parsedNote) {
-        for (Note n : (parsedNote.getAccent() == '-') ? sharpBaseNotes : flatBaseNotes) {
-            if (n.equals(parsedNote)) { return n;}
-        }
-        throw new IllegalArgumentException("cant find it smths wrong: " + parsedNote.toString());
-    }
-
-    public static Note getBaseNote(String s) {
-        return getBaseNote(new NoteInput(s));
-
-    }
-
-    public static Note getBaseNote(String symbol, String accent) {
-        return getBaseNote(new NoteInput(symbol, accent));
-    }
-    public static Note getBaseNote(char symbol, char accent) {
-        return getBaseNote(new NoteInput(symbol, accent));
-    }
-
-    public void addAll(Map<String, Character>[] mappedNotes) {
-        for (Map<String, Character> pn : mappedNotes) {
-
-            this.add(new Note(pn.get("symbol"), pn.get("accent")));
-        }
-    }
-
     public void addAll(String[] strings) {
         for (String s : strings) {
-            Map<String, Character> parsedNote = NoteInput.mapString(s);
-            Note n = new Note(parsedNote);
-            this.add();
+            this.add(factory.create(new NoteInput(s)));
+        }
+    }
+
+    private void addAllBase(Map<String, Character>[] mappedNotes) {
+        for (Map<String, Character> mappedNote : mappedNotes) {
+            this.add(factory.create(new NoteInput(mappedNote)));
+        }
+    }
+
+    private void addAllBase(NoteInput[] noteInputs) {
+        for (NoteInput ni : noteInputs) {
+            this.add(factory.create(ni));
+        }
+    }
+
+    private void addAllBase(String[] strings) {
+        for (String s : strings) {
+            this.add(factory.create(new NoteInput(s)));
+        }
+    }
+    private void addAllBase(Note[] notes) {
+        for (Note note : notes) {
+            this.add(factory.create(new NoteInput(note)));
         }
     }
 
@@ -146,6 +140,9 @@ public class NoteArray<S extends Note> extends ArrayList<S>{
         return previousNote;
     }
 
+
+
+
     public Note getDegree(int degree) {
         return this.get(degree + 1);
     }
@@ -179,7 +176,5 @@ public class NoteArray<S extends Note> extends ArrayList<S>{
         System.out.print(closingPrint + '\n');
     }
 
-    public void addAll(Note[] notes) {
-        this.addAll(List.of(notes));
-    }
+
 }
